@@ -16,7 +16,7 @@ class Parser(object):
         if self.pan_outer.reserved_1 not in WHITELISTED_RESERVED_1:
             return False
 
-        if self.pan_outer.reserved_3 >= 6:  # maybe version?
+        if self.pan_outer.reserved_3 > 6:  # maybe version?
             return False
 
         return True
