@@ -1,4 +1,5 @@
 from constants.structs import PAN_OUTER_BLOCK_STRUCT
+from constants.values import WHITELISTED_RESERVED_1
 
 
 class Parser(object):
@@ -12,7 +13,13 @@ class Parser(object):
         Checks have been reimplemented directly from the APK. Some of these do not
         make immediate sense.
         """
-        pass
+        if self.pan_outer.reserved_1 not in WHITELISTED_RESERVED_1:
+            return False
+
+        if self.pan_outer.reserved_3 >= 6:  # maybe version?
+            return False
+
+        return True
 
     def handle_blob(self):
         """
