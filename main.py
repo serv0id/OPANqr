@@ -1,7 +1,10 @@
 from io import BytesIO
+
+from construct import ValidationError
 from loguru import logger
 from time import time
 from utils.unpacker import BitUnpacker
+from utils.parser import Parser
 import click
 
 
@@ -26,8 +29,13 @@ class OPANQr(object):
         return stream.read()
 
     def parse(self) -> dict:
-        pass
+        parser = Parser(self.unpacked_string)
 
+        if not parser.validate():
+            logger.error("The PAN QR could not be validated.")
+            raise ValidationError
+
+        parser.handle_control()
 
 @click.command()
 @click.option("--string", help="The scanned QR Code string as-is")

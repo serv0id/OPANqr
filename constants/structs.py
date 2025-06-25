@@ -35,8 +35,8 @@ PAN_OUTER_BLOCK_STRUCT = Struct(
     "code_type" / Enum(Int8ub, CodeType),
     Padding(1),  # unused
     "reserved_1" / Int32ub,
-    "reserved_2" / Bytes(1),
-    "reserved_3" / Int16ub,  # shouldn't be greater than 6
+    "reserved_2" / Int8ub,
+    "reserved_3" / Int16ub,
     "num_blocks_1" / Int8ub,
     "blocks_1" / PAN_INNER_BLOCK_STRUCT[this.num_blocks_1],
     "num_blocks_2" / Int8ub,

@@ -41,6 +41,6 @@ class SignatureScheme(Enum):
 
 
 class SCBlobIdentifier(Enum):
-    PII = 0x0302,
-    Image = 0x0102,
+    PII = 0x0302
+    Image = 0x0102
     Mixed = 0x0301  # unimplemented
