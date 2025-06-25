@@ -38,3 +38,56 @@ class Parser(object):
         """
         raise NotImplementedError
 
+    def handle_text(self):
+        """
+        Handles parsing the SCTextNormal structure.
+        """
+        raise NotImplementedError
+
+    def handle_table(self):
+        """
+        Handles parsing the SCTable structure.
+        """
+        raise NotImplementedError
+
+    def handle_placeholder(self):
+        """
+        Handles parsing the SCPlaceHolder structure.
+        """
+        raise NotImplementedError
+
+    def handle_identifier(self):
+        """
+        Handles parsing the SCIdentifier structure.
+        """
+        raise NotImplementedError
+
+    def handle_align(self):
+        """
+        Handles parsing the SCAlign structure.
+        """
+        raise NotImplementedError
+
+    def handle_newline(self):
+        """
+        Handles parsing the SCNewLine structure.
+        """
+        raise NotImplementedError
+
+    def handle_background(self):
+        """
+        Handles parsing the SCBackground structure.
+        """
+        raise NotImplementedError
+
+    def handle_line(self):
+        """
+        Handles parsing the SCLIne structure.
+        """
+        raise NotImplementedError
+
+    def handle_hyperlink(self):
+        """
+        Handles parsing the SCHyperLink structure.
+        """
+        raise NotImplementedError
