@@ -25,12 +25,15 @@ class OPANQr(object):
         stream.seek(0)
         return stream.read()
 
+    def parse(self) -> dict:
+        pass
+
 
 @click.command()
 @click.option("--string", help="The scanned QR Code string as-is")
 def main(string) -> None:
     opanqr = OPANQr(string)
-    print(opanqr.unpacked_string)
+    opanqr.parse()
 
 
 if __name__ == "__main__":

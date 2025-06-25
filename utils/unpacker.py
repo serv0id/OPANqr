@@ -30,14 +30,3 @@ class BitUnpacker(object):
         if v1 > 0:
             self.a = ((v << self.b) | self.a) & 0xFF
             self.b += v1
-            
-
-if __name__ == "__main__":
-    with open('output.bin', 'wb') as f:
-        packer = BitUnpacker(f)
-
-        pan_str = "test"
-        out = [pan_str[i:i + 4] for i in range(0, len(pan_str), 4)]
-
-        for bit in out:
-            packer.bit_unpack(int(bit), 13)
