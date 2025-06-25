@@ -1,11 +1,15 @@
-from constants.structs import PAN_OUTER_BLOCK_STRUCT
+from constants.structs import PAN_OUTER_BLOCK_STRUCT, PII_STRUCT, SCBLOB_STRUCT
 from constants.values import WHITELISTED_RESERVED_1
+from constants.enums import SecureCodeType, SCBlobIdentifier
+from loguru import logger
 
 
 class Parser(object):
-    def __init__(self, in_struct):
+    def __init__(self, in_struct: bytes):
         self.input: bytes = in_struct
         self.pan_outer = PAN_OUTER_BLOCK_STRUCT.parse(self.input)
+        self.image_struct: bytes
+        self.pii_struct: PII_STRUCT
 
     def validate(self) -> bool:
         """
@@ -21,11 +25,27 @@ class Parser(object):
 
         return True
 
-    def handle_blob(self):
+    def handle_control(self):
+        """
+        Handles individual units inside the larger pan_outer block.
+        """
+        logger.debug(f"Found {self.pan_outer.num_blocks_1} block(s) in part 1")
+
+        for block in self.pan_outer.blocks_1:
+            control_type = block.metadata.control_type
+            if control_type == SecureCodeType.SCBlob.name:
+                self.handle_blob(block.data)
+
+    @staticmethod
+    def handle_blob(blob: SCBLOB_STRUCT):
         """
         Handles parsing the SCBlob structure. Most commonly houses PII and Image.
         """
-        pass
+        blob_parsed = SCBLOB_STRUCT.parse(blob)
+        if blob_parsed.identifier == SCBlobIdentifier.Image.name:
+            print("Image found!")
+        elif blob_parsed.identifier == SCBlobIdentifier.PII.name:
+            print("PII found!")
 
     def handle_h1(self):
         """
