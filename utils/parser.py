@@ -1,9 +1,12 @@
+import io
+
 from constants.structs import PAN_OUTER_BLOCK_STRUCT, PII_STRUCT, SCBLOB_STRUCT
 from constants.values import WHITELISTED_RESERVED_1
 from constants.enums import SecureCodeType, SCBlobIdentifier
 from utils.image import ImageProcessor
 from utils.inflater import ZlibInflater
 from loguru import logger
+from bitstring import ConstBitStream
 
 
 class Parser(object):
@@ -26,7 +29,7 @@ class Parser(object):
 
         return True
 
-    def handle_control(self):
+    def handle_control(self) -> None:
         """
         Handles individual units inside the larger pan_outer block.
         """
@@ -58,6 +61,7 @@ class Parser(object):
             logger.debug("PII blob encountered!")
             inflater = ZlibInflater(blob_parsed.data)
             inflated_pii = inflater.inflate()
+            self.handle_pii(inflated_pii)
 
         elif blob_parsed.identifier == SCBlobIdentifier.Mixed.name:
             logger.debug("Mixed SCBlob encountered! Parsing has not been implemented!")
@@ -65,17 +69,50 @@ class Parser(object):
         else:
             logger.debug("Unknown SCBlob encountered")
 
+    def handle_pii(self, data: bytes):
+        """
+        Handles parsing the PII SCBlob.
+        """
+        pii_parsed = PII_STRUCT.parse(data)
+        num_elements = pii_parsed.num_blocks
+
+        logger.debug(f"Found {num_elements} elements in the PII struct")
+
+        pii_data_stream = ConstBitStream(pii_parsed.data)
+
+        for i in range(num_elements):
+            metadata = pii_data_stream.read(8)[::-1]  # type
+            control_type = SecureCodeType(metadata.read(4).uint)
+            print(control_type)
+            if control_type == SecureCodeType.SCTextH2:
+                self.handle_h2(metadata, pii_data_stream)
+            elif control_type == SecureCodeType.SCNewLine:
+                self.handle_newline()
+            elif control_type == SecureCodeType.SCPlaceHolder:
+                self.handle_placeholder(metadata, pii_data_stream)
+
+
+
+
     def handle_h1(self):
         """
         Handles parsing the SCTextH1 structure.
         """
         raise NotImplementedError
 
-    def handle_h2(self):
+    def handle_h2(self, metadata: ConstBitStream, stream: ConstBitStream):
         """
         Handles parsing the SCTextH2 structure.
         """
-        raise NotImplementedError
+        length_exceed = metadata.read(1).bool
+
+        if length_exceed:
+            text = stream.read("bytes:1")
+        else:
+            text = stream.read("bytes:2")
+
+        logger.debug(f"SCTextH2 encountered with content: {text.decode("UTF-16")}")
+
 
     def handle_caption(self):
         """
@@ -95,7 +132,7 @@ class Parser(object):
         """
         raise NotImplementedError
 
-    def handle_placeholder(self):
+    def handle_placeholder(self, metadata: ConstBitStream, stream: ConstBitStream):
         """
         Handles parsing the SCPlaceHolder structure.
         """
@@ -109,15 +146,17 @@ class Parser(object):
 
     def handle_align(self):
         """
-        Handles parsing the SCAlign structure.
+        Handles parsing the SCAlign structure. Used to align text in the app's XML output string.
+        Can be ignored.
         """
         raise NotImplementedError
 
-    def handle_newline(self):
+    @staticmethod
+    def handle_newline() -> None:
         """
-        Handles parsing the SCNewLine structure.
+        Handles parsing the SCNewLine structure. Does nothing.
         """
-        raise NotImplementedError
+        logger.debug("SCNewLine Encountered!")
 
     def handle_background(self):
         """

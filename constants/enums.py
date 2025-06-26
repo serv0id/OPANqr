@@ -44,3 +44,15 @@ class SCBlobIdentifier(Enum):
     PII = 0x0302
     Image = 0x0102
     Mixed = 0x0301  # unimplemented
+
+
+class AlignPosition(Enum):
+    LeftTop = 0
+    LeftCenter = 1
+    LeftBottom = 2
+    CenterTop = 3
+    CenterCenter = 4
+    CenterBottom = 5
+    RightTop = 6
+    RightCenter = 7
+    RightBottom = 8

@@ -9,11 +9,6 @@ METADATA_UPPER_STRUCT = BitsSwapped(BitStruct(
     "character_set" / Enum(Nibble, CharacterSets)
 ))
 
-METADATA_LOWER_STRUCT = BitsSwapped(BitStruct(
-    "control_type" / Enum(BitsInteger(4), SecureCodeType),
-    "data" / GreedyBytes
-))
-
 PAN_INNER_BLOCK_STRUCT = Struct(
     "metadata" / METADATA_UPPER_STRUCT,
     "length" / IfThenElse(this.metadata.exceed_length_flag, Int16ub, Int8ub),
@@ -27,8 +22,7 @@ SCBLOB_STRUCT = Struct(
 
 PII_STRUCT = Struct(
     "num_blocks" / Int16ub,
-    "metadata" / METADATA_LOWER_STRUCT,
-
+    "data" / GreedyBytes
 )
 
 PAN_OUTER_BLOCK_STRUCT = Struct(
