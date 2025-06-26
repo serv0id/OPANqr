@@ -2,6 +2,7 @@ from constants.structs import PAN_OUTER_BLOCK_STRUCT, PII_STRUCT, SCBLOB_STRUCT
 from constants.values import WHITELISTED_RESERVED_1
 from constants.enums import SecureCodeType, SCBlobIdentifier
 from utils.image import ImageProcessor
+from utils.inflater import ZlibInflater
 from loguru import logger
 
 
@@ -38,6 +39,11 @@ class Parser(object):
 
         logger.debug(f"Found {self.pan_outer.num_blocks_2} blocks(s) in part 2")
 
+        for block in self.pan_outer.blocks_2:
+            control_type = block.metadata.control_type
+            if control_type == SecureCodeType.SCBlob.name:
+                self.handle_blob(block.data)
+
     def handle_blob(self, blob: SCBLOB_STRUCT):
         """
         Handles parsing the SCBlob structure. Most commonly houses PII and Image.
@@ -49,7 +55,15 @@ class Parser(object):
             self.image = image_object.fix_header()
 
         elif blob_parsed.identifier == SCBlobIdentifier.PII.name:
-            print("PII found!")
+            logger.debug("PII blob encountered!")
+            inflater = ZlibInflater(blob_parsed.data)
+            inflated_pii = inflater.inflate()
+
+        elif blob_parsed.identifier == SCBlobIdentifier.Mixed.name:
+            logger.debug("Mixed SCBlob encountered! Parsing has not been implemented!")
+
+        else:
+            logger.debug("Unknown SCBlob encountered")
 
     def handle_h1(self):
         """
