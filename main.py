@@ -37,6 +37,7 @@ class OPANQr(object):
 
         parser.handle_control()
 
+
 @click.command()
 @click.option("--string", help="The scanned QR Code string as-is")
 def main(string) -> None:
