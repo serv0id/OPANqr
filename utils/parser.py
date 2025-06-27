@@ -106,12 +106,9 @@ class Parser(object):
         """
         length_exceed = metadata.read(1).bool
         if length_exceed:
-            length = stream.read("uint:8")
+            length = stream.read("uint:16")
         else:
-            stream.read("uint:8")  # hacky way
-            length = stream.read("int:8")
-
-        print(length)
+            stream.read("uint:8")
 
         text = stream.read(f"bytes:{length}")
 
