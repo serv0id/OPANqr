@@ -2,7 +2,7 @@ import io
 
 from constants.structs import PAN_OUTER_BLOCK_STRUCT, PII_STRUCT, SCBLOB_STRUCT
 from constants.values import WHITELISTED_RESERVED_1
-from constants.enums import SecureCodeType, SCBlobIdentifier
+from constants.enums import SecureCodeType, SCBlobIdentifier, PlaceHolderTypes
 from utils.image import ImageProcessor
 from utils.inflater import ZlibInflater
 from loguru import logger
@@ -105,13 +105,17 @@ class Parser(object):
         Handles parsing the SCTextH2 structure.
         """
         length_exceed = metadata.read(1).bool
-
         if length_exceed:
-            text = stream.read("bytes:1")
+            length = stream.read("uint:8")
         else:
-            text = stream.read("bytes:2")
+            stream.read("uint:8")  # hacky way
+            length = stream.read("int:8")
 
-        logger.debug(f"SCTextH2 encountered with content: {text.decode("UTF-16")}")
+        print(length)
+
+        text = stream.read(f"bytes:{length}")
+
+        logger.debug(f"SCTextH2 encountered with content: {text.decode()}")
 
 
     def handle_caption(self):
@@ -136,7 +140,10 @@ class Parser(object):
         """
         Handles parsing the SCPlaceHolder structure.
         """
-        raise NotImplementedError
+        placeholder_type = PlaceHolderTypes(metadata.read(4).uint)
+        text = stream.read("bytes:1")
+
+        logger.debug(f"{placeholder_type} encountered with content: {text.decode()}")
 
     def handle_identifier(self):
         """
@@ -154,7 +161,7 @@ class Parser(object):
     @staticmethod
     def handle_newline() -> None:
         """
-        Handles parsing the SCNewLine structure. Does nothing.
+        Handles parsing the SCNewLine structure. Can be ignored.
         """
         logger.debug("SCNewLine Encountered!")
 

@@ -56,3 +56,11 @@ class AlignPosition(Enum):
     RightTop = 6
     RightCenter = 7
     RightBottom = 8
+
+
+class PlaceHolderTypes(Enum):
+    H1 = 0
+    H2 = 1
+    Caption = 2
+    Normal = 3
+    Image = 4
