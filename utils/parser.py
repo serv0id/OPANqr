@@ -104,15 +104,7 @@ class Parser(object):
         """
         Handles parsing the SCTextH2 structure.
         """
-        length_exceed = metadata.read(1).bool
-        if length_exceed:
-            length = stream.read("uint:16")
-        else:
-            stream.read("uint:8")
-
-        text = stream.read(f"bytes:{length}")
-
-        logger.debug(f"SCTextH2 encountered with content: {text.decode()}")
+        raise NotImplementedError
 
 
     def handle_caption(self):

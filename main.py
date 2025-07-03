@@ -5,17 +5,19 @@ from loguru import logger
 from time import time
 from utils.unpacker import BitUnpacker
 from utils.parser import Parser
+from utils.verifier import Verifier
 import click
 
 
 class OPANQr(object):
-    def __init__(self, string):
+    def __init__(self, string: str, verify: bool):
         self.output_dir: str = f"output/{time()}"
-        self.photo: bytes
+        self.photo: bytes = None
         self.name: str
         self.pan_number: str
         self.scanned_string: str = string
         self.unpacked_string: bytes = self.unpack()
+        self.verify: bool = verify
 
     def unpack(self) -> bytes:
         stream = BytesIO()
@@ -37,11 +39,19 @@ class OPANQr(object):
 
         parser.handle_control()
 
+        self.photo = parser.image
+
+        if self.verify:
+            verifier = Verifier()
+
+
+
 
 @click.command()
 @click.option("--string", help="The scanned QR Code string as-is")
-def main(string) -> None:
-    opanqr = OPANQr(string)
+@click.option("--verify", help="Verify the signature", is_flag=True)
+def main(string: str, verify: bool) -> None:
+    opanqr = OPANQr(string, verify)
     opanqr.parse()
 
 

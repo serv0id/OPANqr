@@ -2,6 +2,16 @@ from construct import Int8ub, Int16ub, Int32ub, Struct, Bytes, Padding, BitStruc
     IfThenElse, GreedyBytes, this, BitsSwapped, Enum, Const
 from constants.enums import SecureCodeType, CodeType, CharacterSets, SignatureScheme, SCBlobIdentifier
 
+ECC_KEY_STRUCT = Struct(
+    "reserved" / Const(b"\x03\x01"),
+    Padding(2),  # magic length but constant (0x3)
+    "magic" / Const(b"ECC"),
+    Padding(5),  # unused
+    "curve_oid_length" / Int16ub,
+    "curve_oid" / Bytes(this.curve_oid_length),
+    "key_length" / Int16ub,
+    "key" / Bytes(this.key_length)
+)
 
 METADATA_UPPER_STRUCT = BitsSwapped(BitStruct(
     "control_type" / Enum(BitsInteger(3), SecureCodeType),
