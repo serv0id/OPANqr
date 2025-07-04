@@ -12,7 +12,4 @@ class Verifier(object):
 
     def verify(self, message: bytes, signature: bytes) -> bool:
         verifier = VerifyingKey.from_string(self.key, curve=NIST384p, hashfunc=sha384, validate_point=True)
-        return verifier.verify(self.fix_signature(signature), data=message)
-
-    def fix_signature(self, signature: bytes) -> bytes:
-        pass
+        return verifier.verify(signature, data=message)

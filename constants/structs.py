@@ -37,7 +37,7 @@ PII_STRUCT = Struct(
 
 PAN_OUTER_BLOCK_STRUCT_MESSAGE = Struct(
     "code_type" / Enum(Int8ub, CodeType),
-    Padding(1),  # unused
+    "reserved_0" / Int8ub,  # unused
     "reserved_1" / Int32ub,
     "reserved_2" / Int8ub,
     "reserved_3" / Int16ub,
@@ -55,5 +55,3 @@ PAN_OUTER_BLOCK_STRUCT = Struct(
     "signature_length" / Enum(Int16ub),
     "signature_data" / Bytes(this.signature_length)
 )
-
-
