@@ -20,4 +20,4 @@ IMAGE_HEADER_WEBP = b"WEBP"
 IMAGE_HEADER_VP8 = b"VP8 "  # with a space (0x20)
 
 ECC_KEY = ("AwEAA0VDQ1UAAAABAAwxLjMuMTMyLjAuMzQAYwRhBI1vbBVnA1KE/T1UpdQYzG6LLot++cuCP5DdEdeKtedw5G8RKAhU0KbNXVUwym8CSw"
-             "UyzdAPC98DAgvkJGOZA/x+cnJOWhVvYTqJvy+IlcOgjSe9kqs0O7zEBy26UmvlIw==")
+           "UyzdAPC98DAgvkJGOZA/x+cnJOWhVvYTqJvy+IlcOgjSe9kqs0O7zEBy26UmvlIw==")

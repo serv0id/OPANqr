@@ -1,6 +1,6 @@
 import io
 
-from constants.structs import PAN_OUTER_BLOCK_STRUCT, PII_STRUCT, SCBLOB_STRUCT
+from constants.structs import PAN_OUTER_BLOCK_STRUCT, PII_STRUCT, SCBLOB_STRUCT, PAN_OUTER_BLOCK_STRUCT_MESSAGE
 from constants.values import WHITELISTED_RESERVED_1
 from constants.enums import SecureCodeType, SCBlobIdentifier, PlaceHolderTypes
 from utils.image import ImageProcessor
@@ -13,6 +13,8 @@ class Parser(object):
     def __init__(self, in_struct: bytes):
         self.input: bytes = in_struct
         self.pan_outer = PAN_OUTER_BLOCK_STRUCT.parse(self.input)
+        self.signature = self.pan_outer.signature_data
+        self.message = PAN_OUTER_BLOCK_STRUCT_MESSAGE.build(self.pan_outer.message)
         self.image: bytes
 
     def validate(self) -> bool:
@@ -21,10 +23,10 @@ class Parser(object):
         Checks have been reimplemented directly from the APK. Some of these do not
         make immediate sense.
         """
-        if self.pan_outer.reserved_1 not in WHITELISTED_RESERVED_1:
+        if self.pan_outer.message.reserved_1 not in WHITELISTED_RESERVED_1:
             return False
 
-        if self.pan_outer.reserved_3 > 6:  # maybe version?
+        if self.pan_outer.message.reserved_3 > 6:  # maybe version?
             return False
 
         return True
@@ -33,16 +35,16 @@ class Parser(object):
         """
         Handles individual units inside the larger pan_outer block.
         """
-        logger.debug(f"Found {self.pan_outer.num_blocks_1} block(s) in part 1")
+        logger.debug(f"Found {self.pan_outer.message.num_blocks_1} block(s) in part 1")
 
-        for block in self.pan_outer.blocks_1:
+        for block in self.pan_outer.message.blocks_1:
             control_type = block.metadata.control_type
             if control_type == SecureCodeType.SCBlob.name:
                 self.handle_blob(block.data)
 
-        logger.debug(f"Found {self.pan_outer.num_blocks_2} blocks(s) in part 2")
+        logger.debug(f"Found {self.pan_outer.message.num_blocks_2} blocks(s) in part 2")
 
-        for block in self.pan_outer.blocks_2:
+        for block in self.pan_outer.message.blocks_2:
             control_type = block.metadata.control_type
             if control_type == SecureCodeType.SCBlob.name:
                 self.handle_blob(block.data)

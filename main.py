@@ -1,5 +1,4 @@
-from io import BytesIO
-
+import io
 from construct import ValidationError
 from loguru import logger
 from time import time
@@ -20,7 +19,7 @@ class OPANQr(object):
         self.verify: bool = verify
 
     def unpack(self) -> bytes:
-        stream = BytesIO()
+        stream = io.BytesIO()
         unpacker = BitUnpacker(stream)
 
         sliced_bytes = [self.scanned_string[i:i + 4] for i in range(0, len(self.scanned_string), 4)]
@@ -43,14 +42,14 @@ class OPANQr(object):
 
         if self.verify:
             verifier = Verifier()
-
-
+            verifier.verify(parser.message, parser.signature)
 
 
 @click.command()
 @click.option("--string", help="The scanned QR Code string as-is")
 @click.option("--verify", help="Verify the signature", is_flag=True)
-def main(string: str, verify: bool) -> None:
+@click.option("--file", help="The scanned QR string from a file")
+def main(string: str, verify: bool, file: io.FileIO) -> None:
     opanqr = OPANQr(string, verify)
     opanqr.parse()
 

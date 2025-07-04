@@ -35,7 +35,7 @@ PII_STRUCT = Struct(
     "data" / GreedyBytes
 )
 
-PAN_OUTER_BLOCK_STRUCT = Struct(
+PAN_OUTER_BLOCK_STRUCT_MESSAGE = Struct(
     "code_type" / Enum(Int8ub, CodeType),
     Padding(1),  # unused
     "reserved_1" / Int32ub,
@@ -44,7 +44,11 @@ PAN_OUTER_BLOCK_STRUCT = Struct(
     "num_blocks_1" / Int8ub,
     "blocks_1" / PAN_INNER_BLOCK_STRUCT[this.num_blocks_1],
     "num_blocks_2" / Int8ub,
-    "blocks_2" / PAN_INNER_BLOCK_STRUCT[this.num_blocks_2],
+    "blocks_2" / PAN_INNER_BLOCK_STRUCT[this.num_blocks_2]
+)
+
+PAN_OUTER_BLOCK_STRUCT = Struct(
+    "message" / PAN_OUTER_BLOCK_STRUCT_MESSAGE,
     "reserved_4" / Const(b"\x01"),
     "signature_scheme" / Enum(Int8ub, SignatureScheme),
     Padding(2),  # unused
