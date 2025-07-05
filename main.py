@@ -11,10 +11,13 @@ import click
 
 
 class OPANQr(object):
-    def __init__(self, string: str, verify: bool):
+    def __init__(self, string: str = None, verify: bool = False, file: str = None):
         self.output_dir: str = os.path.join(os.getcwd(), "output", str(time()))
         self.photo: bytes = None
-        self.scanned_string: str = string
+        if file:
+            self.scanned_string = open(file, "r").read()
+        else:
+            self.scanned_string = string
         self.unpacked_string: bytes = self.unpack()
         self.verify: bool = verify
         self.pii: dict
@@ -38,6 +41,8 @@ class OPANQr(object):
         with open(os.path.join(self.output_dir, "image.webp"), "wb") as f:
             f.write(self.photo)
 
+        logger.info(f"Files saved to {self.output_dir}")
+
     def parse(self) -> None:
         parser = Parser(self.unpacked_string)
 
@@ -60,8 +65,15 @@ class OPANQr(object):
 @click.option("--string", help="The scanned QR Code string as-is")
 @click.option("--verify", help="Verify the signature", is_flag=True)
 @click.option("--file", help="The scanned QR string from a file")
-def main(string: str, verify: bool, file: io.FileIO) -> None:
-    opanqr = OPANQr(string, verify)
+def main(string: str, verify: bool, file: str) -> None:
+    if not (bool(string) ^ bool(file) == 1):
+        logger.error("Please pass only ONE of --string or --file!")
+        return
+    if string:
+        opanqr = OPANQr(string=string, verify=verify)
+    else:
+        opanqr = OPANQr(file=file, verify=verify)
+
     opanqr.parse()
     opanqr.dump()
 
