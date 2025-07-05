@@ -1,4 +1,6 @@
 import io
+import json
+import os
 from construct import ValidationError
 from loguru import logger
 from time import time
@@ -10,13 +12,12 @@ import click
 
 class OPANQr(object):
     def __init__(self, string: str, verify: bool):
-        self.output_dir: str = f"output/{time()}"
+        self.output_dir: str = os.path.join(os.getcwd(), "output", str(time()))
         self.photo: bytes = None
-        self.name: str
-        self.pan_number: str
         self.scanned_string: str = string
         self.unpacked_string: bytes = self.unpack()
         self.verify: bool = verify
+        self.pii: dict
 
     def unpack(self) -> bytes:
         stream = io.BytesIO()
@@ -29,7 +30,15 @@ class OPANQr(object):
         stream.seek(0)
         return stream.read()
 
-    def parse(self) -> dict:
+    def dump(self) -> None:
+        os.makedirs(self.output_dir, exist_ok=True)
+
+        with open(os.path.join(self.output_dir, "output.json"), "w") as f:
+            json.dump(self.pii, f)
+        with open(os.path.join(self.output_dir, "image.webp"), "wb") as f:
+            f.write(self.photo)
+
+    def parse(self) -> None:
         parser = Parser(self.unpacked_string)
 
         if not parser.validate():
@@ -39,10 +48,12 @@ class OPANQr(object):
         parser.handle_control()
 
         self.photo = parser.image
+        self.pii = parser.pii
 
         if self.verify:
             verifier = Verifier()
-            verifier.verify(parser.message, parser.signature)
+            if verifier.verify(parser.message, parser.signature):
+                logger.info("Signature successfully verified!")
 
 
 @click.command()
@@ -52,6 +63,7 @@ class OPANQr(object):
 def main(string: str, verify: bool, file: io.FileIO) -> None:
     opanqr = OPANQr(string, verify)
     opanqr.parse()
+    opanqr.dump()
 
 
 if __name__ == "__main__":

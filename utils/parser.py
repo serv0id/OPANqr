@@ -1,5 +1,5 @@
 import io
-
+import re
 from constants.structs import PAN_OUTER_BLOCK_STRUCT, PII_STRUCT, SCBLOB_STRUCT, PAN_OUTER_BLOCK_STRUCT_MESSAGE
 from constants.values import WHITELISTED_RESERVED_1
 from constants.enums import SecureCodeType, SCBlobIdentifier, PlaceHolderTypes
@@ -16,6 +16,7 @@ class Parser(object):
         self.signature = self.pan_outer.signature_data
         self.message = PAN_OUTER_BLOCK_STRUCT_MESSAGE.build(self.pan_outer.message)
         self.image: bytes
+        self.pii: dict
 
     def validate(self) -> bool:
         """
@@ -71,30 +72,49 @@ class Parser(object):
         else:
             logger.debug("Unknown SCBlob encountered")
 
-    def handle_pii(self, data: bytes):
+    def handle_pii(self, data: bytes) -> None:
         """
-        Handles parsing the PII SCBlob.
+        Handles parsing the PII SCBlob. Currently uses a workaround; not properly implemented.
         """
-        pii_parsed = PII_STRUCT.parse(data)
-        num_elements = pii_parsed.num_blocks
+        # pii_parsed = PII_STRUCT.parse(data)
+        # num_elements = pii_parsed.num_blocks
+        #
+        # logger.debug(f"Found {num_elements} elements in the PII struct")
 
-        logger.debug(f"Found {num_elements} elements in the PII struct")
+        # pii_data_stream = ConstBitStream(pii_parsed.data)
+        #
+        # for i in range(num_elements):
+        #     metadata = pii_data_stream.read(8)[::-1]  # type
+        #     control_type = SecureCodeType(metadata.read(4).uint)
+        #     print(control_type)
+        #     if control_type == SecureCodeType.SCTextH2:
+        #         self.handle_h2(metadata, pii_data_stream)
+        #     elif control_type == SecureCodeType.SCNewLine:
+        #         self.handle_newline()
+        #     elif control_type == SecureCodeType.SCPlaceHolder:
+        #         self.handle_placeholder(metadata, pii_data_stream)
 
-        pii_data_stream = ConstBitStream(pii_parsed.data)
+        pattern = re.compile(b'\x08\x02(.)', re.DOTALL)
+        results = []
 
-        for i in range(num_elements):
-            metadata = pii_data_stream.read(8)[::-1]  # type
-            control_type = SecureCodeType(metadata.read(4).uint)
-            print(control_type)
-            if control_type == SecureCodeType.SCTextH2:
-                self.handle_h2(metadata, pii_data_stream)
-            elif control_type == SecureCodeType.SCNewLine:
-                self.handle_newline()
-            elif control_type == SecureCodeType.SCPlaceHolder:
-                self.handle_placeholder(metadata, pii_data_stream)
+        for match in pattern.finditer(data):
+            length_byte = match.group(1)[0]  # convert from bytes to int
+            start = match.end()
+            end = start + length_byte
+            payload = data[start:end]
 
+            results.append({
+                'match_start': match.start(),
+                'length': length_byte,
+                'payload': payload
+            })
 
-
+        self.pii = {
+            "PAN": results[0]["payload"].decode(),
+            "Name": results[1]["payload"].decode(),
+            "FName": results[2]["payload"].decode(),
+            "DOB": results[3]["payload"].decode()
+        }
 
     def handle_h1(self):
         """
