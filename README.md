@@ -14,3 +14,4 @@ PAN Card QR Code Reader python implementation based on com.pv.scr.pancardreader.
 * ~~Implement Signature Verification~~
 * Properly parse PII element
 * Tidy Code
+* Implement business PAN parsing
