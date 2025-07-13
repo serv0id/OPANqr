@@ -1,7 +1,7 @@
-import io
 import re
-from constants.structs import PAN_OUTER_BLOCK_STRUCT, PII_STRUCT, SCBLOB_STRUCT, PAN_OUTER_BLOCK_STRUCT_MESSAGE
-from constants.values import WHITELISTED_RESERVED_1
+from constants.structs import PAN_OUTER_BLOCK_STRUCT, SCBLOB_STRUCT, PAN_OUTER_BLOCK_STRUCT_MESSAGE
+from constants.values import WHITELISTED_VERSION_1, WHITELISTED_VERSION_2, WHITELISTED_VERSION_3, WHITELISTED_VERSION_4, \
+    ECC_KEY_1, ECC_KEY_2
 from constants.enums import SecureCodeType, SCBlobIdentifier, PlaceHolderTypes
 from utils.image import ImageProcessor
 from utils.inflater import ZlibInflater
@@ -13,8 +13,9 @@ class Parser(object):
     def __init__(self, in_struct: bytes):
         self.input: bytes = in_struct
         self.pan_outer = PAN_OUTER_BLOCK_STRUCT.parse(self.input)
-        self.signature = self.pan_outer.signature_data
+        self.signature: bytes = self.pan_outer.signature_data
         self.message = PAN_OUTER_BLOCK_STRUCT_MESSAGE.build(self.pan_outer.message)
+        self.public_key: str = self.set_key()
         self.image: bytes
         self.pii: dict
 
@@ -24,10 +25,12 @@ class Parser(object):
         Checks have been reimplemented directly from the APK. Some of these do not
         make immediate sense.
         """
-        if self.pan_outer.message.reserved_1 not in WHITELISTED_RESERVED_1:
+        if self.pan_outer.message.reserved_1 not in (
+                WHITELISTED_VERSION_1 | WHITELISTED_VERSION_2 | WHITELISTED_VERSION_3 | WHITELISTED_VERSION_4
+        ):
             return False
 
-        if self.pan_outer.message.reserved_3 > 6:  # maybe version?
+        if self.pan_outer.message.reserved_3 > 6:
             return False
 
         return True
@@ -128,7 +131,6 @@ class Parser(object):
         """
         raise NotImplementedError
 
-
     def handle_caption(self):
         """
         Handles parsing the SCTextCaption structure.
@@ -193,3 +195,15 @@ class Parser(object):
         Handles parsing the SCHyperLink structure.
         """
         raise NotImplementedError
+
+    def set_key(self):
+        """
+        Sets the ECC public key responsible for verification based on the
+        version of the PAN QR Code.
+        """
+        if self.pan_outer.message.reserved_1 in WHITELISTED_VERSION_2:
+            return ECC_KEY_1
+        elif self.pan_outer.message.reserved_1 in WHITELISTED_VERSION_4:
+            return ECC_KEY_2
+        else:
+            return None

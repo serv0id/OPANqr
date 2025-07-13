@@ -56,9 +56,12 @@ class OPANQr(object):
         self.pii = parser.pii
 
         if self.verify:
-            verifier = Verifier()
-            if verifier.verify(parser.message, parser.signature):
-                logger.info("Signature successfully verified!")
+            if parser.public_key is None:
+                logger.error("Corresponding public key was not found!")
+            else:
+                verifier = Verifier(parser.public_key)
+                if verifier.verify(parser.message, parser.signature):
+                    logger.info("Signature successfully verified!")
 
 
 @click.command()
