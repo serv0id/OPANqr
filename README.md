@@ -1,4 +1,5 @@
 PAN Card QR Code Reader python implementation based on com.pv.scr.pancardreader. Can be used to decode and verify (optional) QR codes found on PAN and e-PAN cards.
+Blog at https://www.desrever.dev/posts/opanqr/
 
 # Purpose
  There is no public specification for the "Enhanced 2.0 Secure QR Codes" and the android app is somewhat obfuscated to prevent reverse engineering. The repository tries to emulate the application through a python port of the logic and also makes for a good reverse engineering exercise.
